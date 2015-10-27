@@ -18,14 +18,18 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor (SimpleDelayAud
         delaySlider ("delay"),
         fbSlider ("fFeedback"),
         wdMixSlider ("wetDry"),
+        typeButton ("delayType"),
         delayLabel ("", "Delay time (ms)"),
         fbLabel ("", "Feedback"),
-        wdMixLabel ("", "Dry/Wet")
+        wdMixLabel ("", "Dry/Wet"),
+        typeLabel ("BPM or ms delay")
 {
+    // Angle definitions for rotary knob ranges
     const float PI = 3.141592653589793238463;
     const float MIN_ANG = 10 * PI / 9;
     const float MAX_ANG = 26 * PI / 9;
     
+    // Sliders and buttons
     delaySlider.setSliderStyle (Slider::RotaryVerticalDrag);
     delaySlider.setRotaryParameters (MIN_ANG, MAX_ANG, true);
     delaySlider.setRange (0.0, 1000, 1);
@@ -51,7 +55,11 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor (SimpleDelayAud
     addAndMakeVisible (&wdMixSlider);
     wdMixSlider.addListener(this);
     
-    // Add labels to sliders
+    typeButton.setButtonText("BPM mode");
+    addAndMakeVisible(&typeButton);
+    typeButton.addListener(this);
+    
+    // Add labels to UI components
     delayLabel.attachToComponent (&delaySlider, false);
     delayLabel.setFont (Font (11.0f));
     delayLabel.setJustificationType(Justification::centred);
@@ -61,6 +69,7 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor (SimpleDelayAud
     wdMixLabel.attachToComponent (&wdMixSlider, false);
     wdMixLabel.setFont (Font (11.0f));
     wdMixLabel.setJustificationType(Justification::centred);
+    typeLabel.
     
     // Add resizer component
     addAndMakeVisible (resizer = new ResizableCornerComponent (this, &resizeLimits));
@@ -90,10 +99,11 @@ void SimpleDelayAudioProcessorEditor::resized()
     int x = getWidth();
     int y = getHeight();
     
-    // sets the position and size of the slider with arguments (x, y, width, height)
+    // sets the position and size of the components (arguments = x, y, width, height)
     delaySlider.setBounds (gap, 60, size, y - 100);
     fbSlider.setBounds (size + (gap * 2), 60, size, y - 100);
     wdMixSlider.setBounds ((size * 2) + (gap * 3), 60, size, y - 100);
+    typeButton.setBounds(gap - 30, 60, 30, 30);
     
     resizer->setBounds (x - 16, y - 16, 16, 16);
     

@@ -19,7 +19,8 @@
 /**
 */
 class SimpleDelayAudioProcessorEditor  :    public AudioProcessorEditor,
-                                            public SliderListener
+                                            public SliderListener,
+                                            public ButtonListener
 {
 public:
     SimpleDelayAudioProcessorEditor (SimpleDelayAudioProcessor&);
@@ -34,7 +35,8 @@ public:
 
 private:
     Slider delaySlider, fbSlider, wdMixSlider;
-    Label delayLabel, fbLabel, wdMixLabel;
+    ToggleButton typeButton;
+    Label delayLabel, fbLabel, wdMixLabel, typeLabel;
     ScopedPointer<ResizableCornerComponent> resizer;
     ComponentBoundsConstrainer resizeLimits;
     
