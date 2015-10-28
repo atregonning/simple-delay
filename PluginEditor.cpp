@@ -22,7 +22,7 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor (SimpleDelayAud
         delayLabel ("", "Delay time (ms)"),
         fbLabel ("", "Feedback"),
         wdMixLabel ("", "Dry/Wet"),
-        typeLabel ("BPM or ms delay")
+        typeLabel ("BPM/ms")
 {
     // Angle definitions for rotary knob ranges
     const float PI = 3.141592653589793238463;
@@ -69,7 +69,7 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor (SimpleDelayAud
     wdMixLabel.attachToComponent (&wdMixSlider, false);
     wdMixLabel.setFont (Font (11.0f));
     wdMixLabel.setJustificationType(Justification::centred);
-    typeLabel.
+    typeLabel.attachToComponent(&typeButton, false);
     
     // Add resizer component
     addAndMakeVisible (resizer = new ResizableCornerComponent (this, &resizeLimits));
@@ -103,7 +103,7 @@ void SimpleDelayAudioProcessorEditor::resized()
     delaySlider.setBounds (gap, 60, size, y - 100);
     fbSlider.setBounds (size + (gap * 2), 60, size, y - 100);
     wdMixSlider.setBounds ((size * 2) + (gap * 3), 60, size, y - 100);
-    typeButton.setBounds(gap - 30, 60, 30, 30);
+    typeButton.setBounds(10, (y / 2) - 25, 50, 50);
     
     resizer->setBounds (x - 16, y - 16, 16, 16);
     
@@ -148,4 +148,9 @@ void SimpleDelayAudioProcessorEditor::sliderDragEnded (Slider* slider)
     {
         param->endChangeGesture();
     }
+}
+
+void SimpleDelayAudioProcessorEditor::buttonClicked(Button* button)
+{
+    std::cout << "Clicked!\n";
 }
