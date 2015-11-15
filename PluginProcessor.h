@@ -20,8 +20,9 @@
 class SimpleDelayAudioProcessor  : public AudioProcessor
 {
 public:
-    int delaySamps;
-
+    double delaySamps;
+    double fracDelay;
+    
     AudioProcessorParameter* feedback;
     AudioProcessorParameter* delay;
     AudioProcessorParameter* wetDry;
