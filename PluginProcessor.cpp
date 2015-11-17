@@ -57,25 +57,22 @@ private:
     String name;
 };
 
-const float defaultDelay = 100.0f;
+const float maxDelayMS = 2000.0f;
+const float defaultDelayMS = 100.0f;
 const float defaultFeedback = 0.2f;
 const float defaultWetDry = 0.5f;
-const bool  defaultType = true;
+//const bool  defaultType = true;
 
 //==============================================================================
 SimpleDelayAudioProcessor::SimpleDelayAudioProcessor()
 {
-    delaySamps = (defaultDelay / 1000) * getSampleRate();
-    fracDelay = delaySamps - (int) delaySamps;
-    
     delayPosition = 0;
-    delayBuffer.setSize (2, (int) delaySamps, false, true, true);
     
     lastUIWidth = defaultUIWidth;
     lastUIHeight = defaultUIHeight;
     
     addParameter (feedback  = new FloatParameter (defaultFeedback,  "feedback"));
-    addParameter (delay = new FloatParameter (defaultDelay, "delay"));
+    addParameter (delay = new FloatParameter (defaultDelayMS, "delay"));
     addParameter (wetDry = new FloatParameter (defaultWetDry, "wetDry"));
 }
 
@@ -164,6 +161,8 @@ void SimpleDelayAudioProcessor::changeProgramName (int index, const String& newN
 //==============================================================================
 void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    maxDelay = (maxDelayMS / 1000) * getSampleRate();
+    delayBuffer.setSize (2, (int) maxDelay, false, true, true);
     delayBuffer.clear();
 }
 
@@ -181,33 +180,44 @@ void SimpleDelayAudioProcessor::reset()
 void SimpleDelayAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     const int numSamples = buffer.getNumSamples();
-    int dp = 0;
+    int dWp = 0;
     double wdMix = wetDry->getValue();
-    delaySamps = (delay->getValue() / 1000) * getSampleRate();
-    fracDelay = delaySamps - (int) delaySamps;
+    fullDelay = (delay->getValue() / 1000) * getSampleRate();
+    fracDelay = fullDelay - (int) fullDelay;
     
-//    std::cout << "Delay = " << delaySamps << "\n";
+//    std::cout << "Max delay = " << maxDelay << "\n";
+//    std::cout << "Delay = " << fullDelay << "\n";
 //    std::cout << "fd = " << fracDelay << "\n";
-    
-    delayBuffer.setSize (2, (int) delaySamps, false, true, true);
 
-    for (int channel = 0; channel < getNumInputChannels(); ++channel) {
+    for (int channel = 0; channel < getNumInputChannels(); ++channel)
+    {
         float* channelData = buffer.getWritePointer (channel);
         float* delayData = delayBuffer.getWritePointer (jmin (channel, delayBuffer.getNumChannels() - 1));
-        dp = delayPosition;
-        for (int i = 0; i < numSamples; ++i) {
+        
+        dWp = delayPosition;
+        int dRp = (dWp + (int) fullDelay) % delayBuffer.getNumSamples();
+        
+        for (int i = 0; i < numSamples; ++i)
+        {
             const float in = channelData[i];
-            channelData[i] = ((1 - wdMix) * in)
-                             + (wdMix * ((1 - fracDelay) * delayData[dp]
-                             + (fracDelay * delayData[dp + 1])));
-            delayData[dp] = ((delayData[dp] * feedback->getValue()) + in);
-            if (++dp >= delayBuffer.getNumSamples())
-                dp = 0;
+            channelData[i] = ((1 - wdMix) * delayData[dWp])
+                             + (wdMix * ((1 - fracDelay) * delayData[dRp]
+                             + (fracDelay * delayData[dRp + 1])));
+            delayData[dWp] = ((delayData[dRp] * feedback->getValue()) + in);
+            if (++dWp >= delayBuffer.getNumSamples())
+            {
+                dWp = 0;
+            }
+            if (++dRp >= delayBuffer.getNumSamples() - 1)
+            {
+                dRp = 0;
+            }
         }
     }
-    delayPosition = dp;
+    delayPosition = dWp;
     
-    for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i) {
+    for (int i = getNumInputChannels(); i < getNumOutputChannels(); ++i)
+    {
         buffer.clear (i, 0, buffer.getNumSamples());
     }
 }
